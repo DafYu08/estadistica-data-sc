@@ -1,0 +1,168 @@
+---
+title: "Tp_Inicial_IECD"
+output: html_document
+date: "2024-03-22"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+  
+
+```{r, ECHO = FALSE}
+datosBebes <- read.delim('ENNyS_menorA2.txt', sep = '', header = T)
+
+```
+
+Ejercicio 1
+
+```{r}
+hist(datosBebes$Perim_cef, freq = F,xlim = c(25, 55), ylim = c(0, 0.13),xlab = 'Perimetro Cefálico (cm)', ylab = 'Densidad', main = 'Histograma de densidad del perimetro cefálico, \n y curvas de densidad calculadas con distintos núcleos')
+lines(density(datosBebes$Perim_cef, kernel = 'rectangular'), col = 'red',)
+lines(density(datosBebes$Perim_cef, kernel = 'epanechnikov'), col = 'blue')
+lines(density(datosBebes$Perim_cef, kernel = 'gaussian'), col = 'violet')
+
+text(x = 10, y = 0.10, labels = "Curvas de densidad estimadas:",
+     col = "black", cex = 1, font = 2, adj = c(0,1))
+text(x = 10, y = 0.09, labels = "Rojo: Rectangular", col = "red", adj = c(0,1))
+text(x = 10, y = 0.080, labels = "azul: Epanechnikov", col = "blue", adj = c(0,1))
+text(x = 10, y = 0.070, labels = "violeta: Gaussiana", col = "violet", adj = c(0,1))
+
+``````
+Podemos observar que no cambia mucho el gráfico de densidad con el uso de distintos núcleos, por lo que quizás el ancho de bin sea el parámetro más importante (En este caso R lo está eligiendo automáticamente).
+
+Ejercicio 2
+
+a)Utilizando el histograma:
+
+Como está hecho utilizando la densidad, para calcular esta probabilidad hay que sumar la probabilidad de que los bebés caigan entre 42 y 45 cm, usando la densidad del bin donde se encuentran, y la de que caigan entre 45 y 48, también usando esa densidad.
+
+```{r}
+hist(datosBebes$Perim_cef, freq = F,xlim = c(25, 55), ylim = c(0, 0.13),xlab = 'Perimetro Cefálico (cm)', ylab = 'Densidad', main = 'Histograma de densidad del perimetro cefálico, \n y curvas de densidad calculadas con distintos núcleos',labels = T)
+abline(v=42, col = 'red')
+abline(v=48, col = 'red')
+grid(nx = NULL, ny = NULL,
+     lty = 2,      # Grid line type
+     col = "gray", # Grid line color
+     lwd = 2)      # Grid line width
+
+``````
+
+```{r}
+probabilidad = 3 * 0.065 + 3 * 0.11
+print(paste('Probabilidad calculada con histograma: ',probabilidad))
+```
+
+
+
+b) Utilizando la densidad:
+
+```{r}
+densidad <- density(datosBebes$Perim_cef, kernel = 'epanechnikov')
+```
+
+
+Analizando el contenido del objeto Densidad brindado por R, se trata de la función aproximada por 512 puntos en x (densidad['x']), y sus correspondientes 512 puntos en y (densidad['x']), podemos calcular entonces la probabilidad de un intervalo aproximando la integral convirtiendo la densidad en una función aproximada y integrandola.
+
+```{r}
+probabilidad = integrate(approxfun(densidad), lower=42, upper=48)['value']
+print(paste('Probabilidad calculada con densidad: ',probabilidad))
+
+```
+Podemos observar que los valores difieren en 0.05.
+
+Ejercicio 3
+
+```{r}
+densidadRectangular = density(datosBebes$Perim_cef, kernel = 'rectangular')
+densidadEpanechnikov = density(datosBebes$Perim_cef, kernel = 'epanechnikov')
+densidadGaussiana = density(datosBebes$Perim_cef, kernel = 'gaussian')
+
+print(paste('Ventana para rectangular: ',densidadRectangular['bw']))
+print(paste('Ventana para Epanechnikov: ',densidadEpanechnikov['bw']))
+print(paste('Ventana para gaussiana: ',densidadGaussiana['bw']))
+```
+Probemos como queda el grafico con la ventana a la mitad:
+
+```{r}
+hist(datosBebes$Perim_cef, freq = F,xlim = c(25, 55), ylim = c(0, 0.13),xlab = 'Perimetro Cefálico (cm)', ylab = 'Densidad', main = 'mismo grafico con la ventana a la mitad')
+lines(density(datosBebes$Perim_cef, kernel = 'rectangular',bw = 0.5841512545563/2), col = 'red',)
+lines(density(datosBebes$Perim_cef, kernel = 'epanechnikov',bw = 0.5841512545563/2), col = 'blue')
+lines(density(datosBebes$Perim_cef, kernel = 'gaussian',bw = 0.5841512545563/2), col = 'violet')
+
+text(x = 10, y = 0.10, labels = "Curvas de densidad estimadas:",
+     col = "black", cex = 1, font = 2, adj = c(0,1))
+text(x = 10, y = 0.09, labels = "Rojo: Rectangular", col = "red", adj = c(0,1))
+text(x = 10, y = 0.080, labels = "azul: Epanechnikov", col = "blue", adj = c(0,1))
+text(x = 10, y = 0.070, labels = "violeta: Gaussiana", col = "violet", adj = c(0,1))
+```
+y si la duplicamos?
+
+
+```{r}
+hist(datosBebes$Perim_cef, freq = F,xlim = c(25, 55), ylim = c(0, 0.13),xlab = 'Perimetro Cefálico (cm)', ylab = 'Densidad', main = 'mismo grafico con la ventana a la mitad')
+lines(density(datosBebes$Perim_cef, kernel = 'rectangular',bw = 0.5841512545563*2), col = 'red',)
+lines(density(datosBebes$Perim_cef, kernel = 'epanechnikov',bw = 0.5841512545563*2), col = 'blue')
+lines(density(datosBebes$Perim_cef, kernel = 'gaussian',bw = 0.5841512545563*2), col = 'violet')
+
+text(x = 10, y = 0.10, labels = "Curvas de densidad estimadas:",
+     col = "black", cex = 1, font = 2, adj = c(0,1))
+text(x = 10, y = 0.09, labels = "Rojo: Rectangular", col = "red", adj = c(0,1))
+text(x = 10, y = 0.080, labels = "azul: Epanechnikov", col = "blue", adj = c(0,1))
+text(x = 10, y = 0.070, labels = "violeta: Gaussiana", col = "violet", adj = c(0,1))
+```
+
+Duplicando la ventana las densidades se parecen aún más restando todavía más importancia al nucleo elegido, exceptuando el rectangular, al cual se le observan algunos picos (osea que es más ruidoso).
+
+Ejercicio 4
+
+```{r}
+densidad_gaussiana_mujer <- density(datosBebes$Perim_cef[datosBebes$Sexo == "Mujer"], kernel = "gaussian")
+densidad_gaussiana_varon <- density(datosBebes$Perim_cef[datosBebes$Sexo == "Varon"], kernel = "gaussian")
+
+hist(datosBebes$Perim_cef, freq = F, xlim = c(25, 55), ylim = c(0, 0.13), 
+     xlab = "Perímetro Cefálico (cm)", ylab = "Densidad", main = "Gráfico Histograma / Densidad pErímetro cefálico")
+lines(density(datosBebes$Perim_cef, kernel = "gaussian"), col = 'green')
+lines(densidad_gaussiana_mujer, col = "pink")
+lines(densidad_gaussiana_varon, col = "blue")
+```
+Se puede observar que la curva de densidad de los varoness está más desplazada hacia la derecha que la de las mujeres .Esto nos dice que los varones tienden a tener un perímetro cefálico más grande en comparación con las mujeres en nuestra muestra de datos.
+
+Ejercicio 5 
+
+```{r}
+densidad_gaussiana_simple <- density(datosBebes$Perim_cef[datosBebes$Tipo_embarazo == "Simple"], kernel = "gaussian")
+densidad_gaussiana_multiple <- density(datosBebes$Perim_cef[datosBebes$Tipo_embarazo == "Multiple"], kernel = "gaussian")
+
+hist(datosBebes$Perim_cef, freq = F, xlim = c(25, 55), ylim = c(0, 0.13), 
+     xlab = "Perímetro Cefálico (cm)", ylab = "Densidad", main = "Gráfico Histograma / Densidad")
+lines(density(datosBebes$Perim_cef, kernel = 'gaussian'), col = 'green')
+lines(densidad_gaussiana_simple , col ="black")
+lines(densidad_gaussiana_multiple, col = "purple")
+```
+La curva más a la derecha para el tipo de embarazo simple sugiere que, en promedio, los bebés nacidos de embarazos simples tienen un perímetro cefálico mayor que los bebés nacidos de embarazos múltiples. La mayor altura de la curva para el tipo de embarazo simple indica una mayor densidad de bebés con un perímetro cefálico en comparación con los otros embarazos.
+La curva de densidad de embarazos simples es casi igual a la embarazos totales , esto debe ser  que la proporción de casos de embarazo simple es lo suficientemente grande como para que la distribución general se vea dominada por esta subpoblación.
+
+# chequeo 
+```{r}
+print(paste("Proporción de embarazos simples en la muestra",sum(datosBebes$Tipo_embarazo=="Simple")/nrow(datosBebes)))
+```
+El porcentaje de embarazos simples en la muestra es de 0.967 % . Creería que la alta proporción de embarazos simples explica el por qué las curvas de densidad para el tipo de embarazo simple y la de densidad global son casi idénticas.
+
+
+Ejercicio 6 
+
+```{r}
+library(aplpack)
+
+bagplot(datosBebes$Perim_cef, datosBebes$Talla,
+        ylim= c(30,140),xlab = "Perímetro Cefálico", ylab = "Talla", main = "Bagplot Perímetro cefálico vs Talla")
+```
+Los puntos que están fuera del polígono grande se consideran atípicos y representan valores inusuales en la relación entre las dos variables.
+Se interpreta que es muy poco común tener un perímetro cefálico muy pequeño y a la vez una talla cercana a su media .También nos dice que es inusual tener un perímetro cefalico muy grande y al mismo tiempo una talla muy grande
+
+¿Se registraron bebes de Talla alta y Perímetro Cefálico chico? No 
+¿Y de Talla baja y Perimetro Cefalico grande? Si
+
